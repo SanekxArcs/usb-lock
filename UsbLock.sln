@@ -1,0 +1,31 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsbLock", "UsbLock\UsbLock.csproj", "{5DDE91E2-0D14-4FF9-A714-D2D058A17422}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsbLock.Checks", "UsbLock.Checks\UsbLock.Checks.csproj", "{295963A2-2FF8-448B-9B9A-A3E43AC8B535}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsbLock.UiCheck", "UsbLock.UiCheck\UsbLock.UiCheck.csproj", "{F3BE0A62-0402-4BC4-B07A-C56345CC71B0}"
+EndProject
+Global
+ GlobalSection(SolutionConfigurationPlatforms) = preSolution
+  Debug|Any CPU = Debug|Any CPU
+  Release|Any CPU = Release|Any CPU
+ EndGlobalSection
+ GlobalSection(ProjectConfigurationPlatforms) = postSolution
+  {295963A2-2FF8-448B-9B9A-A3E43AC8B535}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+  {295963A2-2FF8-448B-9B9A-A3E43AC8B535}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  {F3BE0A62-0402-4BC4-B07A-C56345CC71B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+  {F3BE0A62-0402-4BC4-B07A-C56345CC71B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  {5DDE91E2-0D14-4FF9-A714-D2D058A17422}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+  {5DDE91E2-0D14-4FF9-A714-D2D058A17422}.Debug|Any CPU.Build.0 = Debug|Any CPU
+  {5DDE91E2-0D14-4FF9-A714-D2D058A17422}.Release|Any CPU.ActiveCfg = Release|Any CPU
+  {5DDE91E2-0D14-4FF9-A714-D2D058A17422}.Release|Any CPU.Build.0 = Release|Any CPU
+  {295963A2-2FF8-448B-9B9A-A3E43AC8B535}.Release|Any CPU.ActiveCfg = Release|Any CPU
+  {295963A2-2FF8-448B-9B9A-A3E43AC8B535}.Release|Any CPU.Build.0 = Release|Any CPU
+  {F3BE0A62-0402-4BC4-B07A-C56345CC71B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+  {F3BE0A62-0402-4BC4-B07A-C56345CC71B0}.Release|Any CPU.Build.0 = Release|Any CPU
+ EndGlobalSection
+EndGlobal
+

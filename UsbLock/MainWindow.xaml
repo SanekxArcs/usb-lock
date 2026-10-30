@@ -1,0 +1,71 @@
+﻿<ui:FluentWindow x:Class="UsbLock.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+ Icon="pack://application:,,,/UsbLock;component/Assets/app.ico" Title="USB Lock" Width="1020" Height="800" MinWidth="880" MinHeight="640" WindowStartupLocation="CenterScreen" ExtendsContentIntoTitleBar="True" WindowBackdropType="Mica" WindowCornerPreference="Round" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+ <Grid Background="{DynamicResource ApplicationBackgroundBrush}"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+ <ui:TitleBar Title="USB Lock" ShowHelp="False"/>
+ <Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition Width="210"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+  <Grid Margin="16,20,12,20"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+   <StackPanel Margin="12,0,0,24"><TextBlock Text="USB Lock" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="Ваш ключ. Ваш простір." Style="{StaticResource Hint}"/></StackPanel>
+   <ListBox x:Name="Navigation" Grid.Row="1" SelectionChanged="Navigate" SelectedIndex="0" BorderThickness="0" Background="Transparent" VerticalAlignment="Top">
+    <ListBoxItem Padding="14,12" Content="Захист" FontFamily="Segoe UI"/>
+    <ListBoxItem Padding="14,12" Content="Налаштування"/>
+    <ListBoxItem Padding="14,12" Content="Журнал і довідка"/>
+   </ListBox>
+   <StackPanel Grid.Row="2" Margin="12,0"><TextBlock Text="0.2.0 · Windows 11" Style="{StaticResource Hint}"/><TextBlock Text="Працює у системному треї" Style="{StaticResource Hint}"/></StackPanel>
+  </Grid>
+  <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="18,18,30,30">
+   <StackPanel x:Name="ProtectionPage">
+    <TextBlock Text="Захист" FontSize="28" FontWeight="SemiBold" Margin="0,0,0,6"/>
+    <TextBlock Text="Від’єднайте довірений ключ або пристрій — Windows заблокується." Style="{StaticResource Hint}" Margin="0,0,0,22"/>
+    <Border Style="{StaticResource Card}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="64"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+     <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource SubtleFillColorSecondaryBrush}" VerticalAlignment="Top"><TextBlock Text="&#xE72E;" FontFamily="Segoe Fluent Icons" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+     <StackPanel Grid.Column="1" Margin="0,0,16,0"><TextBlock x:Name="StatusTitle" Text="Захист вимкнено" FontSize="20" FontWeight="SemiBold"/><TextBlock x:Name="StatusDetail" Style="{StaticResource Hint}"/></StackPanel>
+     <ui:Button x:Name="ArmButton" Grid.Column="2" Content="Увімкнути" Appearance="Primary" VerticalAlignment="Center" Click="ToggleArm" MinWidth="110"/>
+    </Grid></Border>
+    <Border x:Name="CountdownPanel" Style="{StaticResource Card}" Visibility="Collapsed"><StackPanel><TextBlock x:Name="CountdownText" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Під’єднайте той самий ключ або пристрій, щоб скасувати блокування." Style="{StaticResource Hint}"/><ui:Button x:Name="CancelButton" Content="Скасувати й вимкнути захист" Margin="0,12,0,0" HorizontalAlignment="Left" Click="CancelCountdown"/></StackPanel></Border>
+    <Border Style="{StaticResource Card}"><StackPanel>
+     <TextBlock Text="Додати джерело захисту" Style="{StaticResource Heading}"/>
+     <ComboBox x:Name="SourceMode" SelectedIndex="0" SelectionChanged="SourceModeChanged" Margin="0,4,0,14" AutomationProperties.Name="Тип джерела захисту"><ComboBoxItem Content="Флешка з файлом ключа"/><ComboBoxItem Content="USB-пристрій: камера, миша та інші"/></ComboBox>
+     <StackPanel x:Name="FileSetup">
+     <TextBlock Text="Виберіть знімний накопичувач. Ваші файли залишаться на місці; програма додасть лише .usb-lock.key." Style="{StaticResource Hint}" Margin="0,0,0,14"/>
+     <ComboBox x:Name="DrivesBox" MinHeight="36" AutomationProperties.Name="USB-накопичувач"/>
+     <TextBlock x:Name="DriveHint" Style="{StaticResource Hint}"/>
+     <ui:TextBox x:Name="KeyName" MaxLength="60" Margin="0,14,0,10" PlaceholderText="Назва ключа, наприклад: Мій Kingston" AutomationProperties.Name="Назва ключа"/>
+     <CheckBox x:Name="BindSerial" IsChecked="True" Content="Прив’язати до серійного номера тому"/>
+     <TextBlock Text="Копія файлу на іншому томі не підійде. Форматування змінює серійний номер; це не апаратний захист від клонування." Style="{StaticResource Hint}"/>
+     <WrapPanel Margin="0,16,0,0"><ui:Button x:Name="CreateButton" Content="Створити ключ" Appearance="Primary" Click="CreateKey" Margin="0,0,8,0"/><ui:Button Content="Оновити накопичувачі" Click="RefreshDrives"/></WrapPanel>
+     </StackPanel>
+     <StackPanel x:Name="PeripheralSetup" Visibility="Collapsed">
+      <TextBlock Text="Виберіть під’єднану камеру, мишу, клавіатуру чи інший USB-пристрій. Файли не створюються, доступ до камери не потрібен." Style="{StaticResource Hint}" Margin="0,0,0,14"/>
+      <ComboBox x:Name="DevicesBox" MinHeight="36" SelectionChanged="DeviceSelectionChanged" AutomationProperties.Name="USB-пристрій"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" MaxWidth="640" ToolTip="{Binding DisplayName}"/></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+      <TextBlock x:Name="DeviceHint" Style="{StaticResource Hint}"/>
+      <TextBlock x:Name="DeviceIdentity" Style="{StaticResource Hint}" FontSize="11"/>
+      <ui:TextBox x:Name="DeviceName" MaxLength="60" Margin="0,14,0,10" PlaceholderText="Ваша назва, наприклад: Моя вебкамера" AutomationProperties.Name="Назва довіреного пристрою"/>
+      <TextBlock Text="Це перевірка присутності пристрою за ID Windows. Вона не використовує криптографічний секрет і не захищає від підміни ідентифікатора." Style="{StaticResource Hint}"/>
+      <WrapPanel Margin="0,16,0,0"><ui:Button x:Name="TrustDeviceButton" Content="Додати пристрій" Appearance="Primary" Click="TrustDevice" Margin="0,0,8,0"/><ui:Button Content="Оновити пристрої" Click="RefreshDrives"/></WrapPanel>
+     </StackPanel>
+    </StackPanel></Border>
+    <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Довірені ключі та пристрої" Style="{StaticResource Heading}"/><TextBlock Text="Виберіть джерело перед ввімкненням. Захист відстежує лише його; інший пристрій не замінить вибраний." Style="{StaticResource Hint}" Margin="0,0,0,12"/><TextBlock x:Name="KeysEmpty" Text="Додайте перший ключ або USB-пристрій вище." Style="{StaticResource Hint}" Margin="0,0,0,10"/><ListBox x:Name="KeysBox" MaxHeight="150" MinHeight="45" AutomationProperties.Name="Довірені ключі та пристрої" HorizontalContentAlignment="Stretch" SelectionChanged="TrustedSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled"><ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap"/></DataTemplate></ListBox.ItemTemplate></ListBox><ui:Button x:Name="RevokeButton" Content="Відкликати вибране джерело" Click="RevokeKey" HorizontalAlignment="Left" Margin="0,12,0,0"/></StackPanel></Border>
+    <WrapPanel Margin="0,4,0,14"><ui:Button Content="Заблокувати Windows зараз" Click="LockNow" Margin="0,0,8,0"/><ui:Button Content="Згорнути в трей" Click="HideWindow"/></WrapPanel>
+    <TextBlock Text="Вхід після блокування — через Windows Hello або пароль Windows. Повернення джерела скасовує відлік, але не виконує автоматичний вхід." Style="{StaticResource Hint}"/>
+   </StackPanel>
+   <StackPanel x:Name="SettingsPage" Visibility="Collapsed">
+    <TextBlock Text="Налаштування" FontSize="28" FontWeight="SemiBold" Margin="0,0,0,24"/>
+    <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Після від’єднання" Style="{StaticResource Heading}"/><Grid Margin="0,4,0,16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Затримка блокування"/><TextBlock Text="0–3600 секунд. 0 — одразу після виявлення." Style="{StaticResource Hint}"/></StackPanel><TextBox Grid.Column="1" x:Name="DelayBox" AutomationProperties.Name="Затримка в секундах"/></Grid><CheckBox x:Name="AllowCancel" Content="Дозволити скасувати відлік і вимкнути захист" Margin="0,0,0,14"/><CheckBox x:Name="Notifications" Content="Сповіщення про стан захисту" Margin="0,0,0,14"/><CheckBox x:Name="Sound" Content="Звуковий сигнал перед блокуванням"/></StackPanel></Border>
+    <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Запуск і вигляд" Style="{StaticResource Heading}"/><CheckBox x:Name="Startup" Content="Запускати під час входу у Windows" Margin="0,6,0,14"/><CheckBox x:Name="StartMinimized" Content="Запускати згорнутою в трей" Margin="0,0,0,14"/><CheckBox x:Name="AutoArm" Content="Автоматично вмикати захист після запуску"/><TextBlock Text="Після запуску програма чекатиме на будь-який довірений ключ або пристрій." Style="{StaticResource Hint}"/><Grid Margin="0,18,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="180"/></Grid.ColumnDefinitions><TextBlock Text="Тема оформлення" VerticalAlignment="Center"/><ComboBox x:Name="ThemeBox" Grid.Column="1" SelectedIndex="0" AutomationProperties.Name="Тема"><ComboBoxItem Content="Як у Windows" Tag="System"/><ComboBoxItem Content="Світла" Tag="Light"/><ComboBoxItem Content="Темна" Tag="Dark"/></ComboBox></Grid></StackPanel></Border>
+    <WrapPanel Margin="0,8,0,0"><ui:Button Content="Зберегти" Appearance="Primary" Click="SavePreferences" Margin="0,0,8,8"/><ui:Button Content="Експорт налаштувань" Click="ExportPreferences" Margin="0,0,8,8"/><ui:Button Content="Імпорт" Click="ImportPreferences" Margin="0,0,0,8"/></WrapPanel>
+    <TextBlock Text="Експорт містить лише параметри поведінки й теми. Ключі та автозапуск Windows не переносяться." Style="{StaticResource Hint}"/>
+   </StackPanel>
+   <StackPanel x:Name="HistoryPage" Visibility="Collapsed">
+    <TextBlock Text="Журнал і довідка" FontSize="28" FontWeight="SemiBold" Margin="0,0,0,24"/>
+    <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Як почати" Style="{StaticResource Heading}"/><TextBlock Text="1. Створіть ключ на флешці або додайте USB-пристрій.&#10;2. Виберіть його у списку довірених і натисніть «Увімкнути».&#10;3. Від’єднайте його — почнеться відлік до блокування.&#10;4. Під’єднайте його знову до завершення відліку для скасування." TextWrapping="Wrap" LineHeight="26"/><TextBlock Text="Закриття вікна згортає програму в трей. «Вийти» у меню трея припиняє захист. Програма працює у вашому сеансі, без адміністратора та без системної служби." Style="{StaticResource Hint}" Margin="0,14,0,0"/></StackPanel></Border>
+    <Border Style="{StaticResource Card}"><StackPanel><TextBlock Text="Останні події" Style="{StaticResource Heading}"/><TextBox x:Name="HistoryText" IsReadOnly="True" TextWrapping="Wrap" Height="260" VerticalScrollBarVisibility="Auto" AutomationProperties.Name="Журнал подій"/><ui:Button Content="Оновити журнал" Click="RefreshHistory" HorizontalAlignment="Left" Margin="0,12,0,0"/></StackPanel></Border>
+    <TextBlock Text="Ключ — випадковий секрет на флешці; локально зберігається його SHA-256 відбиток. Налаштування захищені Windows DPAPI для поточного користувача. Не передавайте файл ключа іншим. Режим USB-пристрою перевіряє лише його ID Windows; для пристроїв без унікального ID прив’язка може залежати від порту." Style="{StaticResource Hint}"/>
+   </StackPanel>
+   <ui:InfoBar x:Name="Feedback" IsOpen="False" IsClosable="True" Margin="0,16,0,0"/>
+  </StackPanel></ScrollViewer>
+ </Grid></Grid>
+</ui:FluentWindow>
+
+
+
+
