@@ -4,6 +4,7 @@ public partial class App : System.Windows.Application
 {
  public bool PreviewMode { get; init; }
  private Mutex? _mutex;
+ public ProtectionController? Controller { get; private set; }
  protected override void OnStartup(StartupEventArgs e)
  {
   if (PreviewMode) return;
@@ -13,8 +14,8 @@ public partial class App : System.Windows.Application
   DispatcherUnhandledException += (_, args) => { Storage.Log(args.Exception.ToString()); MessageBox.Show(args.Exception.Message, "USB Lock — помилка"); args.Handled = true; };
   try
   {
-   var config = new Storage().Load(); var window = new MainWindow(config); MainWindow = window;
-   if (!config.Preferences.StartMinimized || e.Args.Contains("--show")) window.Show();
+   var config = new Storage().Load(); Controller = new ProtectionController(config);
+   if (!config.Preferences.StartMinimized || e.Args.Contains("--show")) Controller.OpenWindow();
   }
   catch (Exception error)
   {

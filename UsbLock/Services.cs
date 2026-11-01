@@ -43,6 +43,10 @@ public sealed record ScanResult(List<UsbDrive> Drives, HashSet<string> PresentKe
 public static class UsbKeys
 {
  public const string FileName = ".usb-lock.key";
+ // IsReady on an empty card-reader slot blocks for ~70 ms. Remember empty slots briefly;
+ // inserting media raises WM_DEVICECHANGE, which calls ForgetEmptyDrives so the new card is seen at once.
+ private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> EmptyUntil = new();
+ public static void ForgetEmptyDrives() => EmptyUntil.Clear();
  public static ScanResult Scan(IReadOnlyList<TrustedKey> keys)
  {
   var drives = new List<UsbDrive>(); var present = new HashSet<string>(); var errors = new List<string>();
@@ -50,7 +54,10 @@ public static class UsbKeys
   {
    try
    {
-    if (drive.DriveType != DriveType.Removable || !drive.IsReady) continue;
+    if (drive.DriveType != DriveType.Removable) continue;
+    if (EmptyUntil.TryGetValue(drive.Name, out var until) && DateTime.UtcNow < until) continue;
+    if (!drive.IsReady) { EmptyUntil[drive.Name] = DateTime.UtcNow.AddSeconds(60); continue; }
+    EmptyUntil.TryRemove(drive.Name, out _);
     if (!Native.GetVolumeInformation(drive.Name, null, 0, out var serial, out _, out _, null, 0)) throw new Win32Exception(Marshal.GetLastWin32Error());
     var usb = new UsbDrive(drive.Name, drive.VolumeLabel, serial.ToString("X8"), drive.AvailableFreeSpace); drives.Add(usb);
     var path = Path.Combine(drive.Name, FileName); if (!File.Exists(path)) continue;
@@ -79,6 +86,23 @@ internal static class Native
  [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool LockWorkStation();
  [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
  public static extern bool GetVolumeInformation(string root, StringBuilder? name, uint size, out uint serial, out uint max, out uint flags, StringBuilder? fs, uint fsSize);
+ [DllImport("kernel32.dll")] public static extern IntPtr GetCurrentProcess();
+ [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool SetProcessWorkingSetSize(IntPtr process, nint minimum, nint maximum);
+ [DllImport("user32.dll", SetLastError = true)] public static extern IntPtr RegisterDeviceNotification(IntPtr recipient, IntPtr filter, uint flags);
+ [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] public static extern bool UnregisterDeviceNotification(IntPtr handle);
+ // Subscribe a window to WM_DEVICECHANGE for every device interface class (USB devices, volumes, HID...).
+ public static IntPtr RegisterAllDeviceInterfaces(IntPtr window)
+ {
+  const int size = 32; // DEV_BROADCAST_DEVICEINTERFACE_W: size, type, reserved, GUID, name[1] (padded)
+  var filter = Marshal.AllocHGlobal(size);
+  try
+  {
+   for (var i = 0; i < size; i++) Marshal.WriteByte(filter, i, 0);
+   Marshal.WriteInt32(filter, 0, size); Marshal.WriteInt32(filter, 4, 5); // DBT_DEVTYP_DEVICEINTERFACE
+   return RegisterDeviceNotification(window, filter, 0x4); // DEVICE_NOTIFY_WINDOW_HANDLE | DEVICE_NOTIFY_ALL_INTERFACE_CLASSES
+  }
+  finally { Marshal.FreeHGlobal(filter); }
+ }
 }
 
 

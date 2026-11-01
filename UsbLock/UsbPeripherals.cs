@@ -45,6 +45,9 @@ public static class UsbPeripherals
   }
   finally { SetupDiDestroyDeviceInfoList(set); }
  }
+ // CM_LOCATE_DEVNODE_NORMAL only finds devnodes that are currently present (case-insensitive ID).
+ public static bool IsPresent(string instanceId) =>
+  CM_Locate_DevNode(out var devInst, instanceId, 0) == 0 && CM_Get_DevNode_Status(out _, out _, devInst, 0) == 0;
  private static string Property(IntPtr set, ref DeviceInfo data, uint property)
  {
   var bytes = new byte[8192];
@@ -57,17 +60,30 @@ public static class UsbPeripherals
  [DllImport("setupapi.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool SetupDiGetDeviceInstanceId(IntPtr set, ref DeviceInfo data, StringBuilder id, uint size, out uint required);
  [DllImport("setupapi.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool SetupDiGetDeviceRegistryProperty(IntPtr set, ref DeviceInfo data, uint property, out uint type, byte[] bytes, uint size, out uint required);
  [DllImport("setupapi.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool SetupDiDestroyDeviceInfoList(IntPtr set);
+ [DllImport("cfgmgr32.dll", CharSet = CharSet.Unicode, EntryPoint = "CM_Locate_DevNodeW")] private static extern uint CM_Locate_DevNode(out uint devInst, string deviceId, uint flags);
  [DllImport("cfgmgr32.dll")] private static extern uint CM_Get_Parent(out uint parent, uint devInst, uint flags);
  [DllImport("cfgmgr32.dll")] private static extern uint CM_Get_DevNode_Status(out uint status, out uint problem, uint devInst, uint flags);
 }
 
 public static class ProtectionSources
 {
- public static ScanResult Scan(IReadOnlyList<TrustedKey> keys)
+ // includeDeviceList=false skips the SetupAPI walk when nobody is looking at the list and no device is trusted.
+ public static ScanResult Scan(IReadOnlyList<TrustedKey> keys, bool includeDeviceList = true)
  {
   ScanResult files;
   try { files = UsbKeys.Scan(keys.Where(k => k.Kind == ProtectionSourceKind.FileKey).ToList()); }
   catch (Exception e) { files = new([], [], ["Накопичувачі: " + e.Message]); }
+  if (!includeDeviceList)
+  {
+   // Point lookup per trusted device instead of walking every USB node.
+   try
+   {
+    foreach (var key in keys.Where(k => k.Kind == ProtectionSourceKind.UsbDevice))
+     if (PeripheralIdentity.IsPhysicalUsb(key.DeviceInstanceId) && UsbPeripherals.IsPresent(key.DeviceInstanceId!)) files.PresentKeys.Add(key.Id);
+   }
+   catch (Exception e) { files.Errors.Add("USB-пристрої: " + e.Message); }
+   return files;
+  }
   List<UsbPeripheral> devices;
   try { devices = UsbPeripherals.Scan(); }
   catch (Exception e) { devices = []; files.Errors.Add("USB-пристрої: " + e.Message); }

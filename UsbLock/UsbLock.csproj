@@ -1,2 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net8.0-windows</TargetFramework><UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><ApplicationIcon>Assets/app.ico</ApplicationIcon><Product>USB Lock</Product><Version>0.2.0</Version><NoWarn>$(NoWarn);WFAC010</NoWarn></PropertyGroup><ItemGroup><PackageReference Include="WPF-UI" Version="4.3.0" /></ItemGroup><ItemGroup><Using Remove="System.Drawing"/><Using Remove="System.Windows.Forms"/></ItemGroup><ItemGroup><Resource Include="Assets/app.ico" /></ItemGroup></Project>
+﻿<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net8.0-windows</TargetFramework><UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><ApplicationIcon>Assets/app.ico</ApplicationIcon><Product>USB Lock</Product><Version>0.2.0</Version><NoWarn>$(NoWarn);WFAC010</NoWarn>
+  <!-- Tray app: small heap, mostly idle. No background GC thread; precompiled code so startup does less JIT work. -->
+  <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+  <TieredPGO>false</TieredPGO>
+  <PublishReadyToRun>true</PublishReadyToRun>
+  <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+ </PropertyGroup><ItemGroup><PackageReference Include="WPF-UI" Version="4.3.0" /></ItemGroup><ItemGroup><Using Remove="System.Drawing"/><Using Remove="System.Windows.Forms"/></ItemGroup><ItemGroup><Resource Include="Assets/app.ico" /></ItemGroup></Project>
 
